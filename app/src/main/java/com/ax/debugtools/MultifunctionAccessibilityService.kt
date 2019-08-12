@@ -5,6 +5,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
 import android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
 import android.view.accessibility.AccessibilityNodeInfo
+import com.ax.debugtools.utils.ConfigHelper
 import com.ax.debugtools.utils.EventUtils
 import com.ax.debugtools.utils.LogUtils
 import com.jeremyliao.liveeventbus.LiveEventBus
@@ -26,14 +27,16 @@ class MultifunctionAccessibilityService : AccessibilityService() {
         // 获取当前应用信息
         if (event.eventType == TYPE_WINDOW_STATE_CHANGED) {
             LogUtils.i("App info", event.packageName.toString(), event.className.toString())
-            val info = event.packageName.toString()+"\n"+event.className.toString()
+            val info = event.packageName.toString() + "\n" + event.className.toString()
             LiveEventBus.get()
                 .with(EventUtils.KEY_UPDATE_ACTIVITY_INFO)
                 .post(info)
         }
         if (event.packageName == "android" && event.eventType == TYPE_WINDOW_CONTENT_CHANGED) {
-            // 自动点击安装
-            clickViewByText(this.rootInActiveWindow, "安装", 0)
+            if (ConfigHelper.getBoolean(this, ConfigHelper.AUTO_INSTALL)) {
+                // 自动点击安装, 目前VIVO上部分机型测试可用
+                clickViewByText(this.rootInActiveWindow, "安装", 0)
+            }
         }
     }
 
@@ -51,27 +54,15 @@ class MultifunctionAccessibilityService : AccessibilityService() {
         if (nodeInfo == null) {
             return
         }
-        if (!nodeInfo.isClickable) {
-            nodeInfo.isClickable = true
+        if (nodeInfo.isClickable) {
+            nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            LogUtils.i("click", "点击事件发生")
         }
-        nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
-
-//    private fun clickNode(nodeInfo: AccessibilityNodeInfo?) {
-//        var clickNode = nodeInfo
-//        while (clickNode!=null){
-//            LogUtils.i("nodeInfo", clickNode.toString())
-//            if(clickNode.isClickable || clickNode.isFocusable){
-//                clickNode.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-//                break
-//            }
-//            clickNode = nodeInfo?.parent
-//        }
-//    }
 
     private fun findAccessibilityNodeInfosByText(nodeInfo: AccessibilityNodeInfo, text: String, position: Int): AccessibilityNodeInfo? {
         val targetList: List<AccessibilityNodeInfo> = nodeInfo.findAccessibilityNodeInfosByText(text)
-        if (position >=0 && targetList.size > position) {
+        if (position >= 0 && targetList.size > position) {
             LogUtils.i("list", targetList.size.toString())
             return targetList[position]
         }
@@ -80,7 +71,7 @@ class MultifunctionAccessibilityService : AccessibilityService() {
 
     private fun findAccessibilityNodeInfosByViewId(nodeInfo: AccessibilityNodeInfo, id: String, position: Int): AccessibilityNodeInfo? {
         val targetList: List<AccessibilityNodeInfo> = nodeInfo.findAccessibilityNodeInfosByViewId(id)
-        if (position >=0 && targetList.size > position) {
+        if (position >= 0 && targetList.size > position) {
             return targetList[position]
         }
         return null

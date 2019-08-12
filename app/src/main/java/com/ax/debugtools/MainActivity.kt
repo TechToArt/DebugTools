@@ -1,22 +1,24 @@
 package com.ax.debugtools
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ax.debugtools.activityinfo.ActivityInfoItemBean
 import com.ax.debugtools.activityinfo.ActivityInfoItemViewBinder
+import com.ax.debugtools.autoinstall.AutoInstallItemBean
+import com.ax.debugtools.autoinstall.AutoInstallViewBinder
 import com.ax.debugtools.base.TypePool
 import com.ax.debugtools.floatwindow.FloatWindowService
 import com.ax.debugtools.utils.ConfigHelper
+import com.ax.debugtools.utils.EventUtils
 import com.ax.debugtools.utils.PermissionUtils
+import com.jeremyliao.liveeventbus.LiveEventBus
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,28 +32,41 @@ class MainActivity : AppCompatActivity() {
         val rv: RecyclerView = this.findViewById(R.id.rv)
         rv.layoutManager = LinearLayoutManager(this)
         val typePool = TypePool()
+        // 注册功能
         typePool.register(ActivityInfoItemBean::class.java, ActivityInfoItemViewBinder())
+        typePool.register(AutoInstallItemBean::class.java, AutoInstallViewBinder())
         rv.adapter = MainListAdapter(ConfigHelper.getConfig(this), typePool)
 
-        if (!PermissionUtils.hasAccessibilityServicePermission(this, MultifunctionAccessibilityService::class.java)) {
-            PermissionUtils.requestAccessibilityServicePermission(this)
-        }
-
-        // todo 动态申请权限
-        if (checkPermission()) {
-            startService()
-        } else {
-            if (Build.VERSION.SDK_INT >= 23) {
-                requestPermission()
-            }
-        }
-
+        registerEvent()
 
         // todo 开启辅助功能权限提醒
         // todo MVVM
     }
 
-    fun startService() {
+    private fun registerEvent() {
+        // ActivityInfo悬浮窗开启关闭
+        LiveEventBus.get()
+            .with(EventUtils.KEY_UPDATE_FLOAT_WINDOW_SERVICE_STATE, Boolean::class.java)
+            .observe(this, Observer {
+                if (it) {   // 开启悬浮窗
+                    // 申请浮窗权限
+                    if (PermissionUtils.checkDrawOverlaysPermission(this)) {
+                        startService()
+                    } else {
+                        if (Build.VERSION.SDK_INT >= 23) {
+                            PermissionUtils.requestPermission(this, REQUEST_CODE)
+                        }
+                    }
+                } else {    // 关闭悬浮窗
+                    LiveEventBus.get().with(EventUtils.KEY_STOP_FLOAT_WINDOW_SERVICE).post(null)
+                    ConfigHelper.putBoolean(this, ConfigHelper.ACTIVITY_INFO, false)
+                }
+
+            })
+
+    }
+
+    private fun startService() {
         intent = Intent(this, FloatWindowService::class.java)
         startService(intent)
     }
@@ -59,7 +74,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_CODE -> {
-                if (checkPermission()) {  //用户授权成功
+                if (PermissionUtils.checkDrawOverlaysPermission(this)) {  //用户授权成功
                     startService()
                 } else { //用户拒绝授权
                     Toast.makeText(application, "弹窗权限被拒绝", Toast.LENGTH_SHORT).show()
@@ -67,19 +82,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.M)
-    fun requestPermission() {
-        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        startActivityForResult(intent, REQUEST_CODE)
-    }
-
-    private fun checkPermission(): Boolean {
-        return when {
-            Build.VERSION.SDK_INT >= 23 -> Settings.canDrawOverlays(this)
-            else -> true
-        }
     }
 
 }

@@ -5,15 +5,22 @@ import android.graphics.PixelFormat
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.TextView
+import android.widget.Toast
 import com.ax.debugtools.R
+import com.ax.debugtools.utils.EventUtils
+import com.jeremyliao.liveeventbus.LiveEventBus
 
 
 class FloatWindowManager {
     private var floatWindowView: FloatWindowView? = null
     private var windowManager: WindowManager? = null
-    fun createWindow(context: Context){
+    fun createWindow(context: Context) {
         val windowManager = getWindowManager(context)
-        floatWindowView = FloatWindowView(context)
+        floatWindowView = FloatWindowView(context, object : FloatWindowView.Callback {
+            override fun onDoubleTap() {
+                LiveEventBus.get().with(EventUtils.KEY_STOP_FLOAT_WINDOW_SERVICE).post(null)
+            }
+        })
         val params = WindowManager.LayoutParams()
         params.format = PixelFormat.RGBA_8888
         params.width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -26,7 +33,7 @@ class FloatWindowManager {
         windowManager.addView(floatWindowView, params)
     }
 
-    fun removeWindow(context: Context){
+    fun removeWindow(context: Context) {
         if (floatWindowView != null) {
             val windowManager = getWindowManager(context)
             windowManager.removeView(floatWindowView)
