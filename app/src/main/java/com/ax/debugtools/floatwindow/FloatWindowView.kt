@@ -25,12 +25,17 @@ class FloatWindowView(context: Context, callback: Callback) : LinearLayout(conte
     init {
         LayoutInflater.from(context).inflate(R.layout.float_window_layout, this)
         gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: MotionEvent?): Boolean {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
                 callback.onDoubleTap()
                 return super.onDoubleTap(e)
             }
 
-            override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+            override fun onScroll(
+                e1: MotionEvent,
+                e2: MotionEvent,
+                distanceX: Float,
+                distanceY: Float
+            ): Boolean {
                 LogUtils.i("Scroll", e2?.action.toString(), distanceX.toString(), distanceY.toString())
                 if (e1 != null) {
                     xInView = e1.x

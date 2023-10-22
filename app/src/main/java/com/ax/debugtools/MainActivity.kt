@@ -1,7 +1,7 @@
 package com.ax.debugtools
 
 import android.content.Intent
-import android.os.Build
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +13,8 @@ import com.ax.debugtools.activityinfo.ActivityInfoItemBean
 import com.ax.debugtools.activityinfo.ActivityInfoItemViewBinder
 import com.ax.debugtools.autoinstall.AutoInstallItemBean
 import com.ax.debugtools.autoinstall.AutoInstallViewBinder
+import com.ax.debugtools.base.BaseViewHolder
+import com.ax.debugtools.base.ItemBean
 import com.ax.debugtools.base.TypePool
 import com.ax.debugtools.floatwindow.FloatWindowService
 import com.ax.debugtools.utils.ConfigHelper
@@ -31,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         val parent: ConstraintLayout = this.findViewById(R.id.parent_layout)
         val rv: RecyclerView = this.findViewById(R.id.rv)
         rv.layoutManager = LinearLayoutManager(this)
-        val typePool = TypePool()
+        val typePool = TypePool<ItemBean, BaseViewHolder>()
         // 注册功能
         typePool.register(ActivityInfoItemBean::class.java, ActivityInfoItemViewBinder())
         typePool.register(AutoInstallItemBean::class.java, AutoInstallViewBinder())
@@ -53,9 +55,7 @@ class MainActivity : AppCompatActivity() {
                     if (PermissionUtils.checkDrawOverlaysPermission(this)) {
                         startService()
                     } else {
-                        if (Build.VERSION.SDK_INT >= 23) {
-                            PermissionUtils.requestPermission(this, REQUEST_CODE)
-                        }
+                        PermissionUtils.requestOverlayPermission(this, REQUEST_CODE)
                     }
                 } else {    // 关闭悬浮窗
                     LiveEventBus.get().with(EventUtils.KEY_STOP_FLOAT_WINDOW_SERVICE).post(null)
@@ -78,6 +78,8 @@ class MainActivity : AppCompatActivity() {
                     startService()
                 } else { //用户拒绝授权
                     Toast.makeText(application, "弹窗权限被拒绝", Toast.LENGTH_SHORT).show()
+                    LiveEventBus.get().with(EventUtils.KEY_OVERLAY_PERMISSION_CHANGED)
+                        .post(PackageManager.PERMISSION_GRANTED)
                 }
             }
         }

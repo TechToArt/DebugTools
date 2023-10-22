@@ -27,7 +27,7 @@ class FloatWindowManager {
         params.height = WindowManager.LayoutParams.WRAP_CONTENT
         params.gravity = Gravity.TOP or Gravity.LEFT
         params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        params.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+        params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         floatWindowView!!.setParams(params)
 
         windowManager.addView(floatWindowView, params)

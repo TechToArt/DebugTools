@@ -2,9 +2,10 @@ package com.ax.debugtools.base
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
 
-interface ItemViewBinder<B, VH : RecyclerView.ViewHolder> {
-    fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): RecyclerView.ViewHolder
+interface ItemViewBinder<B, VH> {
+    fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): VH
     fun onBindViewHolder(holder: VH, bean: B)
+    fun onViewAttachedToWindow(holder: VH)
+    fun onViewDetachedFromWindow(holder: VH)
 }

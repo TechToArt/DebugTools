@@ -5,15 +5,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
 import com.ax.debugtools.R
 import com.ax.debugtools.base.BaseViewHolder
 import com.ax.debugtools.base.ItemViewBinder
 import com.ax.debugtools.utils.ConfigHelper
 
-class AutoInstallViewBinder: ItemViewBinder<AutoInstallItemBean, AutoInstallViewBinder.AutoInstallViewHolder> {
-    override fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): RecyclerView.ViewHolder {
+class AutoInstallViewBinder :
+    ItemViewBinder<AutoInstallItemBean, AutoInstallViewBinder.AutoInstallViewHolder> {
+    override fun onCreateViewHolder(
+        inflater: LayoutInflater,
+        parent: ViewGroup
+    ): AutoInstallViewHolder {
         return AutoInstallViewHolder(inflater.inflate(R.layout.title_switch_layout, parent, false))
+    }
+
+    override fun onViewDetachedFromWindow(holder: AutoInstallViewHolder) {
+    }
+
+    override fun onViewAttachedToWindow(holder: AutoInstallViewHolder) {
     }
 
     override fun onBindViewHolder(holder: AutoInstallViewHolder, bean: AutoInstallItemBean) {

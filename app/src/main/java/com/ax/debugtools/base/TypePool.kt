@@ -2,10 +2,10 @@ package com.ax.debugtools.base
 
 import androidx.collection.ArrayMap
 
-class TypePool {
+class TypePool<B, VH> {
     private val itemViewBinders: ArrayMap<Class<*>, ItemViewBinder<*, *>> = ArrayMap()
 
-    fun <T> register(clazz: Class<T>, itemViewBinder: ItemViewBinder<T, *>) {
+    fun register(clazz: Class<out B>, itemViewBinder: ItemViewBinder<out B, out VH>) {
         itemViewBinders[clazz] = itemViewBinder
     }
 
@@ -21,11 +21,11 @@ class TypePool {
         return itemViewBinders.indexOfKey(clazz)
     }
 
-    fun getItemViewByIndex(index: Int):ItemViewBinder<*, *> {
-        return itemViewBinders.valueAt(index)
+    fun getItemViewByIndex(index: Int): ItemViewBinder<B, VH> {
+        return itemViewBinders.valueAt(index) as ItemViewBinder<B, VH>
     }
 
-    fun getItemViewByClass(clazz: Class<*>):ItemViewBinder<*, *>? {
-        return itemViewBinders[clazz]
+    fun getItemViewByClass(clazz: Class<*>): ItemViewBinder<B, VH>? {
+        return itemViewBinders[clazz] as ItemViewBinder<B, VH>?
     }
 }

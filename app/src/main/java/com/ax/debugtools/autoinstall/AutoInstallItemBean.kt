@@ -1,3 +1,5 @@
 package com.ax.debugtools.autoinstall
 
-data class AutoInstallItemBean(val title: String, val isOpen: Boolean)
+import com.ax.debugtools.base.ItemBean
+
+data class AutoInstallItemBean(val title: String, val isOpen: Boolean) : ItemBean
